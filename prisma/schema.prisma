@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                           String                      @id @default(uuid())
+  display_name                 String                      @unique @default("")
+  gameParameters               GameParameter[]
+  interComments                InterComment[]
+  birthday                     Birthday?
+  board                        Board?
+  email                        String                      @unique
+  email_verified               Boolean                     @default(false)
+  image                        String?
+  votes                        Vote[]
+  accounts                     Account[]
+  platformConfigInterCommentId String?
+  platformConfigInterComment   PlatformConfigInterComment? @relation(fields: [platformConfigInterCommentId], references: [id])
+  platformConfigHomeId         String?
+  platformConfigHome           PlatformConfigHome?         @relation(fields: [platformConfigHomeId], references: [id])
+
+  @@map("user")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  provider              Provider  @relation(fields: [providerId], references: [id])
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Provider {
+  id      String    @id @default(uuid())
+  name    String    @unique
+  account Account[]
+
+  @@map("provider")
+}
+
+model PlatformConfigInterComment {
+  id            String  @id @default(uuid())
+  authorization Boolean
+  user          User[]
+  role          Role    @relation(fields: [roleid], references: [id])
+  roleid        String
+
+  @@map("platform_config_inter_comment")
+}
+
+model PlatformConfigHome {
+  id            String  @id @default(uuid())
+  authorization Boolean
+  user          User[]
+  role          Role    @relation(fields: [roleid], references: [id])
+  roleid        String
+
+  @@map("platform_config_home")
+}
+
+model Role {
+  id                         String                       @id @default(uuid())
+  name                       String                       @unique
+  PlatformConfigHome         PlatformConfigHome[]
+  PlatformConfigInterComment PlatformConfigInterComment[]
+
+  @@map("role")
+}
+
+model ConfigInterComment {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+
+  @@map("config_inter_comment")
+}
+
+model Birthday {
+  id       String @id @default(uuid())
+  day      Int
+  month    Int
+  user     User   @relation(fields: [user_id], references: [id])
+  username String @unique
+  user_id  String @unique
+
+  @@map("birthday")
+}
+
+model GameParameter {
+  id      String @id @default(uuid())
+  value   Int
+  name    String
+  game    Game   @relation(fields: [game_id], references: [id])
+  game_id String
+  user    User   @relation(fields: [user_id], references: [id])
+  user_id String
+
+  @@map("game_parameter")
+}
+
+model Game {
+  id             String          @id @default(uuid())
+  gameParameters GameParameter[]
+  name           String          @unique
+
+  @@map("game")
+}
+
+model Board {
+  id            String         @id @default(uuid())
+  name          String
+  user          User           @relation(fields: [user_id], references: [id])
+  user_id       String         @unique
+  interComments InterComment[]
+  isLocked      Boolean        @default(false)
+  background    String
+  links         Link[]
+  theme         Theme          @relation(fields: [theme_id], references: [id])
+  theme_id      String
+  createdAt     DateTime       @default(now()) // Se establece automáticamente al crear un registro
+  updatedAt     DateTime       @default(now()) @updatedAt // Se actualiza automáticamente en cada cambio
+
+  @@map("board")
+}
+
+model Theme {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  color  String  @unique
+  boards Board[]
+
+  @@map("theme")
+}
+
+model Link {
+  id        String   @id @default(uuid())
+  url       String
+  name      String
+  board     Board    @relation(fields: [board_id], references: [id])
+  board_id  String
+  createdAt DateTime @default(now()) // Se establece automáticamente al crear un registro
+  updatedAt DateTime @default(now()) @updatedAt // Se actualiza automáticamente en cada cambio
+
+  @@map("link")
+}
+
+model InterComment {
+  id        String   @id @default(uuid())
+  comment   String
+  user      User     @relation(fields: [user_id], references: [id])
+  user_id   String
+  username  String
+  votes     Vote[]
+  board     Board    @relation(fields: [board_id], references: [id])
+  board_id  String
+  createdAt DateTime @default(now()) // Se establece automáticamente al crear un registro
+  updatedAt DateTime @default(now()) @updatedAt // Se actualiza automáticamente en cada cambio
+
+  @@map("inter_comment")
+}
+
+model Vote {
+  id         String       @id @default(uuid())
+  value      Boolean
+  user       User         @relation(fields: [user_id], references: [id])
+  user_id    String
+  comment    InterComment @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  comment_id String
+
+  @@unique([user_id, comment_id])
+  @@map("vote")
+}
