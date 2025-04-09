@@ -17,7 +17,6 @@ export const createInterComment = async (ctx: Context) => {
 
     return ctx.json(interComment, 201);
   } catch (error) {
-    console.log('error', error);
     return ctx.json({ message: (error as Error).message }, 500);
   }
 };

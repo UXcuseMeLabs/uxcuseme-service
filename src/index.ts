@@ -7,6 +7,8 @@ import path from 'path'
 import { fileURLToPath } from 'url';
 import { readdirSync } from 'fs'
 import dotenv from 'dotenv';
+import { swaggerUI } from '@hono/swagger-ui'
+import { openAPISpecs } from 'hono-openapi'
 dotenv.config(); // Carga las variables de entorno del archivo .env
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,16 +20,33 @@ const app = new Hono()
 
 // Ruta base de los servicios
 const servicesPath = path.join(__dirname, 'services');
-console.log(process.env.ORIGIN)
 app.use(cors({
-  origin: [process.env.ORIGIN!,'https://id.twitch.tv'],
+  origin: [process.env.ORIGIN!, 'https://localhost:3001'],
   credentials: true,
   allowMethods: ['POST', 'GET', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
   
 }))
 app.use(logger())
 app.use(prettyJSON())
+
+app.get(
+  '/openapi',
+  openAPISpecs(app, {
+    documentation: {
+      info: {
+        title: 'Hono API',
+        version: '1.0.0',
+        description: 'Greeting API',
+      },
+      servers: [
+        { url: 'http://localhost:3000', description: 'Local Server' },
+      ],
+    },
+  })
+)
+
+
+app.get('/ui', swaggerUI({ url: '/openapi' }))
 
 
 // Leer recursivamente la carpeta de servicios

@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import { createBoard, getBoardByTwitchId } from "./board.controller.js";
+import { zValidator } from "@hono/zod-validator";
+import { Board } from "./board.types.js";
 
 
 
@@ -7,7 +9,7 @@ import { createBoard, getBoardByTwitchId } from "./board.controller.js";
 const boardRoutes = new Hono()
 
 
-boardRoutes.post('/', createBoard)
+boardRoutes.post('/', createBoard, zValidator('json', Board))
 
 boardRoutes.get('/:id', getBoardByTwitchId)
 

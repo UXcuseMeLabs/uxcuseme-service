@@ -130,7 +130,6 @@ export const getUserById = async (c: Context) => {
         if (!user) {
             return c.json({ error: 'User not found' }, 404);
           }
-
         return c.json(user)
     } catch (error) {
         

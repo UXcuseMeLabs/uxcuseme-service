@@ -28,9 +28,16 @@ export const getBirthdayById = async (ctx: Context) => {
   const id = ctx.req.param('id');
   
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: {
-        twitch_id: id,
+        accounts: {
+          some: {
+            provider: {
+              name: 'twitch',
+            },
+            accountId: id,
+          }
+        }
       },
       include: {
         birthday: true,

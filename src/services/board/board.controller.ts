@@ -1,6 +1,6 @@
-import type { Board } from '@prisma/client/wasm';
 import { type Context } from 'hono';
 import prisma from '../../utils/prisma.js';
+import type { Board } from '@prisma/client/edge';
 
 export const createBoard = async (ctx: Context) => {
   const body: Board = await ctx.req.json();

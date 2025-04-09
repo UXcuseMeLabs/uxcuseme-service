@@ -45,7 +45,11 @@ export const User = z.object({
   image: z.string(),
   gameParameters: z.array(GameParameter),
   birthday: Birthday,
-  votes: z.array(Vote),
+  votes: z.array(z.object({
+    id: z.string(),
+    value: z.number(),
+    comment: z.string(),
+  })),
   accounts: z.array(Account),
   platformConfigInterComment: PlatformConfig,
   platformConfigHome: PlatformConfig,

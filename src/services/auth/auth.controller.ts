@@ -27,6 +27,7 @@ async function refreshAccessToken(refreshToken: string) {
 }
 
 export const callbackTwitch = async (c:Context) => {
+  const state = c.req.query('state')
   const code = c.req.query('code');
   if (!code) return c.text('Código no proporcionado', 400);
 
@@ -69,6 +70,32 @@ export const callbackTwitch = async (c:Context) => {
         display_name: displayName,
         email,
         email_verified: true,
+        platformConfigHome: {
+          create: {
+            authorization: true,
+            role: {
+              connectOrCreate: {
+                where: {name: 'member'},
+                create: {
+                  name: 'member'
+                }
+              }
+            }
+          }
+        },
+        platformConfigInterComment: {
+          create: {
+            authorization: true,
+            role: {
+              connectOrCreate: {
+                where: {name: 'member'},
+                create: {
+                  name: 'member'
+                }
+              }
+            }
+          }
+        },
         image,
         accounts: {
           create: {
@@ -86,7 +113,18 @@ export const callbackTwitch = async (c:Context) => {
 
     // Generar el token JWT para el frontend
     const token = generateJWT(user.id);
-    return c.json({ token });
+    let redirectUrl = process.env.ORIGIN!;
+    if (state) {
+        try {
+            const decodedState = JSON.parse(Buffer.from(state, 'base64').toString('utf8'));
+            if (decodedState.redirect) {
+                redirectUrl = decodedState.redirect;
+            }
+        } catch (error) {
+            console.error('Error decodificando el state:', error);
+        }
+    }
+    return c.redirect(process.env.ORIGIN! + '/?token=' + token + '&redirect=' + redirectUrl)
   } catch (error) {
     console.error('Error en la autenticación:', error);
     return c.text('Error en la autenticación', 500);
@@ -102,7 +140,7 @@ export const middleWareRefreshToken = async (c: Context, next: Next ) => {
 export const middleWareProtectedRoute = async (c:Context, next: Next) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader) return c.text('Token no proporcionado', 401);
-
+  console.log(authHeader)
   const token = authHeader.replace('Bearer ', '');
   try {
     jwt.verify(token, JWT_SECRET);
