@@ -52,11 +52,16 @@ export const getInterComments = async (ctx: Context) => {
   const page = parseInt(ctx.req.query('page') || '1', 10);  // Página actual, predeterminada a 1
   const limit = parseInt(ctx.req.query('limit') || '10', 10);  // Límite de resultados por página, predeterminado a 10
   const skip = (page - 1) * limit;  // Calcular el desplazamiento
-
+  const { id } = ctx.req.param();
   try {
     const interComments = await prisma.interComment.findMany({
       skip,
       take: limit,
+      where: {
+        user: {
+          display_name: id,
+        },
+      },
       include: {
         votes: true,
         user: true,
@@ -66,7 +71,7 @@ export const getInterComments = async (ctx: Context) => {
       },
     });
 
-    const totalComments = await prisma.interComment.count();  // Contar el total de comentarios
+    const totalComments = await prisma.interComment.count();
 
     return ctx.json({
       page,

@@ -13,7 +13,7 @@ interCommentRoutes.delete('/:id', deleteInterComment)
 
 interCommentRoutes.delete('/', deleteInterComments)
 
-interCommentRoutes.get('/', getInterComments)
+interCommentRoutes.get('/:id', getInterComments)
 
 
 

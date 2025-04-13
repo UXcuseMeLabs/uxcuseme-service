@@ -28,14 +28,6 @@ export const getBoardByTwitchId = async (ctx: Context) => {
       user: true,
       links: true,
       theme: true,
-      interComments: {
-        include: {
-          votes: true
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      }
     },
     where: {
       user: {
